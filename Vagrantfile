@@ -16,16 +16,20 @@ Vagrant.configure("2") do |configLS|
   v.cpus = 1
  end
 
- configLS.vm.provision "shell" do |configShell|
-  configShell.inline = "yum -y update"
-  configShell.inline = "curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -"
-  configShell.inline = "yum install nodejs"
-  configShell.inline = "yum -y install initscripts fontconfig"
-  configShell.inline = "yum install https://grafana.com/grafana/download?platform=linux"
-  configShell.inline = "service grafana-server start"
-  configShell.inline = "/sbin/chkconfig --add grafana-server"
-  configShell.inline = "npm install -g serverless"
- end
+ $script = <<-SCRIPT
+  yum -y update
+  curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
+  yum -y install nodejs
+  yum -y install initscripts fontconfig
+  wget https://dl.grafana.com/oss/release/grafana-5.4.2-1.x86_64.rpm
+  rpm -Uvh grafana-5.4.2-1.x86_64.rpm
+  service grafana-server start
+  /sbin/chkconfig --add grafana-server
+  npm install -g serverless
+ SCRIPT
+
+ configLS.vm.provision "shell", inline: $script
+
  for port in 4567..4582 do
   configLS.vm.network "forwarded_port", guest: port, host: port
  end
