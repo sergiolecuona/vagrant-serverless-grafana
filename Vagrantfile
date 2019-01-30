@@ -1,15 +1,15 @@
 require 'yaml'
 
-current_dir    = File.dirname(File.expand_path(__FILE__))
-configs        = YAML.load_file("#{current_dir}/vars.yaml")
-vagrant_config = configs['variables'][configs['variables']['use']]
-
 Vagrant.configure("2") do |configLS|
 
- configLS.vm.provision "file", source: File.expand_path("../id_rsa.pub", __FILE__), destination: "~/.ssh/authorized_keys"
+ configLS.vm.provision "file", source: File.expand_path("../files/id_rsa.pub", __FILE__), destination: "~/.ssh/authorized_keys"
  configLS.vm.provision "file", source: File.expand_path("~/.aws/credentials", __FILE__), destination: "~/.aws/credentials"
  configLS.ssh.insert_key = false
- configLS.ssh.private_key_path = [File.expand_path("../id_rsa", __FILE__), "~/.vagrant.d/insecure_private_key"]
+ configLS.ssh.private_key_path = [File.expand_path("../files/id_rsa", __FILE__), "~/.vagrant.d/insecure_private_key"]
+
+ current_dir    = File.dirname(File.expand_path(__FILE__))
+ configs        = YAML.load_file("#{current_dir}/config/vars.yaml")
+ vagrant_config = configs['variables'][configs['variables']['use']]
 
  configLS.vm.box = vagrant_config['OS']
 
@@ -19,7 +19,7 @@ Vagrant.configure("2") do |configLS|
  configLS.vm.box_check_update = false
  configLS.vm.provider "virtualbox" do |v|
   v.memory = vagrant_config['MEMORIA_RAM']
-  v.cpus = 1
+  v.cpus = vagrant_config['NUM_CPU']
  end
 
  $script = <<-SCRIPT
@@ -27,7 +27,7 @@ Vagrant.configure("2") do |configLS|
   curl -sL vagrant_config['NODE_URL'] | sudo bash -
   yum -y install nodejs
   yum -y install initscripts fontconfig wget urw-fonts
-  yum -y install make python python-pip python-devel java mvn
+  yum -y install make python python-devel
   if [ ! -f get-pip-py ]
   then
     curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
@@ -41,9 +41,13 @@ Vagrant.configure("2") do |configLS|
   service grafana-server start
   /sbin/chkconfig --add grafana-server
   npm install -g serverless
+  echo "***INSTALLING LOCALSTACK***"
   pip install localstack
-  export SERVICES=es
-  export DEFAULT_REGION=eu-west-1
+  echo "***EXPORTING VARIABLES***"
+  echo export SERVICES="es">/etc/profile.d/servicesenv.sh
+  export DEFAULT_REGION=vagrant_config['REGION_AWS']>/etc/profile.d/regionenv.sh
+  chmod 0755 /etc/profile.d/servicesenv.sh
+  chmod 0755 /etc/profile.d/regionenv.sh
  SCRIPT
 
  configLS.vm.provision "shell", inline: $script
