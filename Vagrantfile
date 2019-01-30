@@ -47,11 +47,13 @@ Vagrant.configure("2") do |configLS|
   echo "***EXPORTING VARIABLES***"
   echo export SERVICES="es" > /etc/profile.d/servicesenv.sh
   echo export DEFAULT_REGION=vagrant_config['REGION_AWS'] > /etc/profile.d/regionenv.sh
-  echo export FORCE_NONINTERACTIVE=''>/etc/profile.d/noninteractive.d
+  echo export FORCE_NONINTERACTIVE=''>/etc/profile.d/noninteractive.sh
+  echo export DATA_DIR='/vagrant'>/etc/profile.d/datadir.sh
   chmod 0755 /etc/profile.d/servicesenv.sh
   chmod 0755 /etc/profile.d/regionenv.sh
   chmod 0755 /etc/profile.d/noninteractive.sh
-  localstack stop
+  chmod 0755 /etc/profile.d/datadir.sh
+  localstack infra stop
   localstack start --docker
   localstack web
  SCRIPT
