@@ -2,10 +2,10 @@ require 'yaml'
 
 Vagrant.configure("2") do |configLS|
 
- configLS.vm.provision "file", source: File.expand_path("../files/id_rsa.pub", __FILE__), destination: "~/.ssh/authorized_keys"
+ configLS.vm.provision "file", source: File.expand_path("../id_rsa.pub", __FILE__), destination: "~/.ssh/authorized_keys"
  configLS.vm.provision "file", source: File.expand_path("~/.aws/credentials", __FILE__), destination: "~/.aws/credentials"
  configLS.ssh.insert_key = false
- configLS.ssh.private_key_path = [File.expand_path("../files/id_rsa", __FILE__), "~/.vagrant.d/insecure_private_key"]
+ configLS.ssh.private_key_path = [File.expand_path("../id_rsa", __FILE__), "~/.vagrant.d/insecure_private_key"]
 
  current_dir    = File.dirname(File.expand_path(__FILE__))
  configs        = YAML.load_file("#{current_dir}/config/vars.yaml")
@@ -24,7 +24,7 @@ Vagrant.configure("2") do |configLS|
 
  $script = <<-SCRIPT
   yum -y update
-  curl -sL vagrant_config['NODE_URL'] | sudo bash -
+  wget vagrant_config['NODE_URL']
   yum -y install nodejs
   yum -y install initscripts fontconfig wget urw-fonts
   yum -y install make python python-devel
@@ -36,16 +36,16 @@ Vagrant.configure("2") do |configLS|
   if [ ! -f grafana-5.4.2-1.x86_64.rpm ]
   then
     wget https://dl.grafana.com/oss/release/grafana-5.4.2-1.x86_64.rpm
+    rpm -Uvh grafana-5.4.2-1.x86_64.rpm
   fi
-  rpm -Uvh grafana-5.4.2-1.x86_64.rpm
   service grafana-server start
   /sbin/chkconfig --add grafana-server
   npm install -g serverless
   echo "***INSTALLING LOCALSTACK***"
   pip install localstack
   echo "***EXPORTING VARIABLES***"
-  echo export SERVICES="es">/etc/profile.d/servicesenv.sh
-  export DEFAULT_REGION=vagrant_config['REGION_AWS']>/etc/profile.d/regionenv.sh
+  echo export SERVICES="es" > /etc/profile.d/servicesenv.sh
+  export DEFAULT_REGION=vagrant_config['REGION_AWS'] > /etc/profile.d/regionenv.sh
   chmod 0755 /etc/profile.d/servicesenv.sh
   chmod 0755 /etc/profile.d/regionenv.sh
  SCRIPT
