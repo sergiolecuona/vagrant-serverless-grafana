@@ -28,6 +28,7 @@ Vagrant.configure("2") do |configLS|
   yum -y install nodejs
   yum -y install initscripts fontconfig wget urw-fonts
   yum -y install make python python-devel
+  yum -y install docker
   if [ ! -f get-pip-py ]
   then
     curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
@@ -42,12 +43,17 @@ Vagrant.configure("2") do |configLS|
   /sbin/chkconfig --add grafana-server
   npm install -g serverless
   echo "***INSTALLING LOCALSTACK***"
-  pip install localstack
+  pip install localstack --user vagrant
   echo "***EXPORTING VARIABLES***"
   echo export SERVICES="es" > /etc/profile.d/servicesenv.sh
-  export DEFAULT_REGION=vagrant_config['REGION_AWS'] > /etc/profile.d/regionenv.sh
+  echo export DEFAULT_REGION=vagrant_config['REGION_AWS'] > /etc/profile.d/regionenv.sh
+  echo export FORCE_NONINTERACTIVE=''>/etc/profile.d/noninteractive.d
   chmod 0755 /etc/profile.d/servicesenv.sh
   chmod 0755 /etc/profile.d/regionenv.sh
+  chmod 0755 /etc/profile.d/noninteractive.sh
+  localstack stop
+  localstack start --docker
+  localstack web
  SCRIPT
 
  configLS.vm.provision "shell", inline: $script
