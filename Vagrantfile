@@ -43,7 +43,7 @@ Vagrant.configure("2") do |configLS|
     curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
   fi
   python get-pip.py
-  if [ ! -f grafana-5.4.2-1.x86_64.rpm ]
+  if [ ! -f #{GRAFANA_RPM} ]
   then
     wget https://dl.grafana.com/oss/release/#{GRAFANA_RPM}
     rpm -Uvh #{GRAFANA_RPM}
@@ -53,15 +53,19 @@ Vagrant.configure("2") do |configLS|
   npm install -g serverless
   echo "***INSTALLING LOCALSTACK***"
   pip install localstack --user
+  sudo chown -R vagrant:vagrant /root/.config
+  sudo chown -R vagrant:vagrant /root/.local
   echo "***EXPORTING VARIABLES***"
   echo export SERVICES="es" > /etc/profile.d/servicesenv.sh
   echo export DEFAULT_REGION=#{REGION_AWS} > /etc/profile.d/regionenv.sh
   echo export FORCE_NONINTERACTIVE=''>/etc/profile.d/noninteractive.sh
   echo export DATA_DIR='/vagrant'>/etc/profile.d/datadir.sh
+  echo export PATH=$PATH:/root/.local/bin > /etc/profile.d/changepath.sh
   chmod 0755 /etc/profile.d/servicesenv.sh
   chmod 0755 /etc/profile.d/regionenv.sh
   chmod 0755 /etc/profile.d/noninteractive.sh
   chmod 0755 /etc/profile.d/datadir.sh
+  chmod 0755 /etc/profile.d/changepath.sh
   localstack infra stop
   localstack start --docker
   localstack web
