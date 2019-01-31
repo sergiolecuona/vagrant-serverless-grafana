@@ -1,4 +1,12 @@
-require 'yaml'
+#require 'yaml'
+
+PRIVATE_IP = "192.168.77.31"
+OS = "centos/7"
+MEMORIA_RAM = 4096
+NUM_CPU = 1
+NODE_URL = "https://rpm.nodesource.com/setup_10.x"
+REGION_AWS = "eu-west-1"
+GRAFANA_RPM = "grafana-5.4.2-1.x86_64.rpm"
 
 Vagrant.configure("2") do |configLS|
 
@@ -7,24 +15,24 @@ Vagrant.configure("2") do |configLS|
  configLS.ssh.insert_key = false
  configLS.ssh.private_key_path = [File.expand_path("../id_rsa", __FILE__), "~/.vagrant.d/insecure_private_key"]
 
- current_dir    = File.dirname(File.expand_path(__FILE__))
- configs        = YAML.load_file("#{current_dir}/config/vars.yaml")
- vagrant_config = configs['variables'][configs['variables']['use']]
+# current_dir    = File.dirname(File.expand_path(__FILE__))
+# configs        = YAML.load_file("#{current_dir}/config/vars.yaml")
+# vagrant_config = configs['variables'][configs['variables']['use']]
 
- configLS.vm.box = vagrant_config['OS']
+ configLS.vm.box = OS
 
  configLS.vm.define "serverless-grafana"
  configLS.vm.hostname = "serverlessgrafana"
- configLS.vm.network :private_network, ip:vagrant_config['PRIVATE_IP']
+ configLS.vm.network :private_network, ip:PRIVATE_IP
  configLS.vm.box_check_update = false
  configLS.vm.provider "virtualbox" do |v|
-  v.memory = vagrant_config['MEMORIA_RAM']
-  v.cpus = vagrant_config['NUM_CPU']
+  v.memory = MEMORIA_RAM
+  v.cpus = NUM_CPU
  end
 
  $script = <<-SCRIPT
   yum -y update
-  wget vagrant_config['NODE_URL']
+  wget #{NODE_URL}
   yum -y install nodejs
   yum -y install initscripts fontconfig wget urw-fonts
   yum -y install make python python-devel
@@ -36,8 +44,8 @@ Vagrant.configure("2") do |configLS|
   python get-pip.py
   if [ ! -f grafana-5.4.2-1.x86_64.rpm ]
   then
-    wget https://dl.grafana.com/oss/release/grafana-5.4.2-1.x86_64.rpm
-    rpm -Uvh grafana-5.4.2-1.x86_64.rpm
+    wget https://dl.grafana.com/oss/release/#{GRAFANA_RPM}
+    rpm -Uvh #{GRAFANA_RPM}
   fi
   service grafana-server start
   /sbin/chkconfig --add grafana-server
@@ -46,7 +54,7 @@ Vagrant.configure("2") do |configLS|
   pip install localstack --user vagrant
   echo "***EXPORTING VARIABLES***"
   echo export SERVICES="es" > /etc/profile.d/servicesenv.sh
-  echo export DEFAULT_REGION=vagrant_config['REGION_AWS'] > /etc/profile.d/regionenv.sh
+  echo export DEFAULT_REGION=#{REGION_AWS} > /etc/profile.d/regionenv.sh
   echo export FORCE_NONINTERACTIVE=''>/etc/profile.d/noninteractive.sh
   echo export DATA_DIR='/vagrant'>/etc/profile.d/datadir.sh
   chmod 0755 /etc/profile.d/servicesenv.sh
