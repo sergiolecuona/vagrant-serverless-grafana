@@ -52,7 +52,7 @@ Vagrant.configure("2") do |configLS|
   /sbin/chkconfig --add grafana-server
   npm install -g serverless
   echo "***INSTALLING LOCALSTACK***"
-  pip install localstack --user vagrant
+  pip install localstack --user
   echo "***EXPORTING VARIABLES***"
   echo export SERVICES="es" > /etc/profile.d/servicesenv.sh
   echo export DEFAULT_REGION=#{REGION_AWS} > /etc/profile.d/regionenv.sh
