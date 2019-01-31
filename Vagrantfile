@@ -4,7 +4,8 @@ PRIVATE_IP = "192.168.77.31"
 OS = "centos/7"
 MEMORIA_RAM = 4096
 NUM_CPU = 1
-NODE_URL = "https://rpm.nodesource.com/setup_10.x"
+NODE_VERSION="setup_10.x"
+NODE_URL = "https://rpm.nodesource.com/#{NODE_VERSION}"
 REGION_AWS = "eu-west-1"
 GRAFANA_RPM = "grafana-5.4.2-1.x86_64.rpm"
 
@@ -32,10 +33,10 @@ Vagrant.configure("2") do |configLS|
 
  $script = <<-SCRIPT
   yum -y update
-  wget #{NODE_URL}
-  yum -y install nodejs
   yum -y install initscripts fontconfig wget urw-fonts
   yum -y install make python python-devel
+  curl -sL #{NODE_URL} | sudo bash -
+  yum -y install nodejs
   yum -y install docker
   if [ ! -f get-pip-py ]
   then
