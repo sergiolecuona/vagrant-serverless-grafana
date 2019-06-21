@@ -50,11 +50,12 @@ Vagrant.configure("2") do |configLS|
   fi
   service grafana-server start
   /sbin/chkconfig --add grafana-server
-  npm install -g serverless
-  echo "***INSTALLING LOCALSTACK***"
-  pip install localstack --user
-  sudo chown -R vagrant:vagrant /root/.config
-  sudo chown -R vagrant:vagrant /root/.local
+  grafana-cli plugins install grafana-azure-monitor-datasource
+  #npm install -g serverless
+  #echo "***INSTALLING LOCALSTACK***"
+  #pip install localstack --user
+  #sudo chown -R vagrant:vagrant /root/.config
+  #sudo chown -R vagrant:vagrant /root/.local
   echo "***EXPORTING VARIABLES***"
   echo export SERVICES="es" > /etc/profile.d/servicesenv.sh
   echo export DEFAULT_REGION=#{REGION_AWS} > /etc/profile.d/regionenv.sh
@@ -66,9 +67,9 @@ Vagrant.configure("2") do |configLS|
   chmod 0755 /etc/profile.d/noninteractive.sh
   chmod 0755 /etc/profile.d/datadir.sh
   chmod 0755 /etc/profile.d/changepath.sh
-  localstack infra stop
-  localstack start --docker
-  localstack web
+  #localstack infra stop
+  #localstack start --docker
+  #localstack web
  SCRIPT
 
  configLS.vm.provision "shell", inline: $script
